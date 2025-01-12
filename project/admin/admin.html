@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+        }
+
+        .image-list {
+            max-width: 600px;
+            margin: 20px auto;
+        }
+
+        .header {
+            margin-bottom: 20px;
+        }
+
+        .image-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .image-item img {
+            width: 308px;
+            height: 70px;
+            object-fit: contain;
+        }
+
+        .controls {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        button {
+            padding: 5px 10px;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .no-done-version {
+            color: #ff4444;
+            font-style: italic;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="image-list">
+        <div class="header">
+            <h2>CS2 Map Challange</h2>
+        </div>
+        <div id="imageList"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        socket.on('updateImages', (images) => {
+            const container = document.getElementById('imageList');
+            container.innerHTML = '';
+            
+            images.forEach((image, index) => {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                div.innerHTML = `
+                    <img src="${image.baseUrl}" alt="${image.title}">
+                    <div class="controls">
+                        <button onclick="moveUp(${index})">↑</button>
+                        <button onclick="moveDown(${index})">↓</button>
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" 
+                                   ${image.isDone ? 'checked' : ''} 
+                                   ${!image.hasDoneVersion ? 'disabled' : ''}
+                                   onchange="toggleDone(${index})"
+                            >
+                            <label>Done</label>
+                        </div>
+                        ${!image.hasDoneVersion ? '<span class="no-done-version">No "_done" version available</span>' : ''}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        });
+
+        function moveUp(index) {
+            socket.emit('moveImage', { from: index, to: index - 1 });
+        }
+
+        function moveDown(index) {
+            socket.emit('moveImage', { from: index, to: index + 1 });
+        }
+
+        function toggleDone(index) {
+            socket.emit('toggleDone', index);
+        }
+    </script>
+</body>
+</html>

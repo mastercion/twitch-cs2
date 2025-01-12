@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Display</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .image-container {
+            max-width: 308px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .image-item {
+            width: 308px;
+            height: 70px;
+        }
+
+        .image-item img {
+            width: 308px;
+            height: 70px;
+            object-fit: contain;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="image-container" id="imageContainer"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        
+        socket.on('updateImages', (images) => {
+            const container = document.getElementById('imageContainer');
+            container.innerHTML = '';
+            
+            images.slice(0, 5).forEach(image => {
+                const div = document.createElement('div');
+                div.className = 'image-item';
+                // Use either the done or base image URL based on isDone state
+                const imageUrl = image.isDone ? image.doneUrl : image.baseUrl;
+                div.innerHTML = `<img src="${imageUrl}" alt="${image.title}">`;
+                container.appendChild(div);
+            });
+        });
+    </script>
+</body>
+</html>
