@@ -82,8 +82,30 @@ process.on('SIGINT', () => {
     process.exit();
 });
 
+let timerState = {
+    startTime: new Date(),
+    isRunning: false
+};
+
 io.on('connection', (socket) => {
     socket.emit('updateImages', images);
+
+    socket.on('timerControl', (data) => {
+        switch(data.action) {
+            case 'start':
+                timerState.startTime = new Date();
+                timerState.isRunning = true;1
+                break;
+            case 'stop':
+                timerState.isRunning = false;
+                break;
+            case 'restart':
+                timerState.startTime = new Date();
+                timerState.isRunning = true;
+                break;
+        }
+        io.emit('timerState', timerState);
+    });
 
     socket.on('moveImage', ({ from, to }) => {
         if (to >= 0 && to < images.length) {
@@ -96,6 +118,17 @@ io.on('connection', (socket) => {
     socket.on('toggleDone', (index) => {
         if (index >= 0 && index < images.length) {
             images[index].isDone = !images[index].isDone;
+            if (images[index].isDone) {
+                // Add timestamp when marked as done
+                const now = new Date();
+                const hours = now.getHours().toString().padStart(2, '0');
+                const minutes = now.getMinutes().toString().padStart(2, '0');
+                const seconds = now.getSeconds().toString().padStart(2, '0');
+                images[index].timestamp = `${hours}:${minutes}:${seconds}`;
+            } else {
+                // Remove timestamp when unmarked
+                images[index].timestamp = null;
+            }
             io.emit('updateImages', images);
         }
     });

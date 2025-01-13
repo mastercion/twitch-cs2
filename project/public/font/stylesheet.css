@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'Eurostile Extended';
+    src: url('EurostileExtended-Black.woff2') format('woff2'),
+        url('EurostileExtended-Black.woff') format('woff');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+

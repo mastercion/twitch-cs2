@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <head>
     <title>Image Display</title>
     <style>
@@ -28,15 +29,66 @@
             object-fit: contain;
             display: block;
         }
+        @font-face {
+            font-family: 'Eurostile Extended Black';
+            src: url('/font/EurostileExtended-Black.woff2') format('woff2'),
+                 url('/font/EurostileExtended-Black.woff') format('woff'),
+                 url('/font/EurostileExtendedBlack.ttf') format('truetype');
+            font-weight: normal;
+            font-display: swap;
+        }
+
+        .timer {
+            font-family: 'Eurostile Extended Black', sans-serif;
+            font-size: 24px;
+            color: rgb(0, 0, 0);
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .time-stamp {
+            font-family: 'Eurostile Extended Black', sans-serif;
+            font-size: 18px;
+            color: white;
+            text-align: center;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="image-container" id="imageContainer"></div>
+    <div id="timer" class="timer">00:00:00</div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        
+        let timerInterval;
+        let startTime = new Date();
+        let isRunning = false;
+
+        function updateTimer() {
+            if (!isRunning) return;
+            
+            const now = new Date();
+            const diff = now - startTime;
+            const hours = Math.floor(diff / 3600000).toString().padStart(2, '0');
+            const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+            const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        socket.on('timerState', (state) => {
+            startTime = new Date(state.startTime);
+            isRunning = state.isRunning;
+            
+            clearInterval(timerInterval);
+            if (isRunning) {
+                updateTimer();
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+        });
+
+        // Single socket.on event handler
         socket.on('updateImages', (images) => {
             const container = document.getElementById('imageContainer');
             container.innerHTML = '';
@@ -44,9 +96,11 @@
             images.slice(0, 7).forEach(image => {
                 const div = document.createElement('div');
                 div.className = 'image-item';
-                // Use either the done or base image URL based on isDone state
                 const imageUrl = image.isDone ? image.doneUrl : image.baseUrl;
-                div.innerHTML = `<img src="${imageUrl}" alt="${image.title}">`;
+                div.innerHTML = `
+                    <img src="${imageUrl}" alt="${image.title}">
+                    ${image.timestamp ? `<div class="time-stamp">${image.timestamp}</div>` : ''}
+                `;
                 container.appendChild(div);
             });
         });

@@ -6,108 +6,157 @@
         body {
             margin: 0;
             padding: 20px;
+            background-color: #f0f0f0;
         }
 
-        .image-list {
-            max-width: 600px;
-            margin: 20px auto;
-        }
-
-        .header {
-            margin-bottom: 20px;
+        .image-container {
+            max-width: 308px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
 
         .image-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            gap: 10px;
+            width: 308px;
+            height: 70px;
+            cursor: pointer;
+            position: relative;
         }
 
         .image-item img {
             width: 308px;
             height: 70px;
             object-fit: contain;
+            display: block;
         }
 
-        .controls {
-            display: flex;
-            gap: 5px;
-            align-items: center;
+        .control-panel {
+            text-align: center;
+            margin: 20px 0;
         }
 
-        button {
-            padding: 5px 10px;
+        .control-button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
         }
 
-        .checkbox-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 5px;
+        .control-button:hover {
+            background-color: #45a049;
         }
 
-        .checkbox-wrapper input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
+        .control-button.stop {
+            background-color: #f44336;
         }
 
-        .no-done-version {
-            color: #ff4444;
-            font-style: italic;
-            margin-left: 10px;
+        .control-button.stop:hover {
+            background-color: #da190b;
+        }
+
+        .control-button.restart {
+            background-color: #2196F3;
+        }
+
+        .control-button.restart:hover {
+            background-color: #0b7dda;
+        }
+
+        .timer {
+            font-family: 'Eurostile Extended Black', sans-serif;
+            font-size: 24px;
+            color: rgb(0, 0, 0);
+            text-align: center;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
-    <div class="image-list">
-        <div class="header">
-            <h2>CS2 Map Challange</h2>
-        </div>
-        <div id="imageList"></div>
+    <div class="control-panel">
+        <button class="control-button start" onclick="startTimer()">Start</button>
+        <button class="control-button stop" onclick="stopTimer()">Stop</button>
+        <button class="control-button restart" onclick="restartTimer()">Restart</button>
     </div>
+    <div id="timer" class="timer">00:00:00</div>
+    <div class="image-container" id="imageContainer"></div>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
         const socket = io();
+    let timerInterval;
+    let startTime = new Date();
+    let isRunning = false;
+
+    function startTimer() {
+        socket.emit('timerControl', { action: 'start' });
+    }
+
+    function stopTimer() {
+        socket.emit('timerControl', { action: 'stop' });
+    }
+
+    function restartTimer() {
+        socket.emit('timerControl', { action: 'restart' });
+    }
+
+    function updateTimer() {
+        if (!isRunning) return;
+        
+        const now = new Date();
+        const diff = now - startTime;
+        const hours = Math.floor(diff / 3600000).toString().padStart(2, '0');
+        const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+        const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+        document.getElementById('timer').textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    socket.on('timerState', (state) => {
+        startTime = new Date(state.startTime);
+        isRunning = state.isRunning;
+        
+        clearInterval(timerInterval);
+        if (isRunning) {
+            updateTimer();
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+    });
 
         socket.on('updateImages', (images) => {
-            const container = document.getElementById('imageList');
+            const container = document.getElementById('imageContainer');
             container.innerHTML = '';
             
-            images.forEach((image, index) => {
+            images.slice(0, 7).forEach((image, index) => {
                 const div = document.createElement('div');
                 div.className = 'image-item';
+                div.setAttribute('data-index', index);
+                const imageUrl = image.isDone ? image.doneUrl : image.baseUrl;
                 div.innerHTML = `
-                    <img src="${image.baseUrl}" alt="${image.title}">
-                    <div class="controls">
-                        <button onclick="moveUp(${index})">↑</button>
-                        <button onclick="moveDown(${index})">↓</button>
-                        <div class="checkbox-wrapper">
-                            <input type="checkbox" 
-                                   ${image.isDone ? 'checked' : ''} 
-                                   ${!image.hasDoneVersion ? 'disabled' : ''}
-                                   onchange="toggleDone(${index})"
-                            >
-                            <label>Done</label>
-                        </div>
-                        ${!image.hasDoneVersion ? '<span class="no-done-version">No "_done" version available</span>' : ''}
-                    </div>
+                    <img src="${imageUrl}" alt="${image.title}">
+                    ${image.timestamp ? `<div class="time-stamp">${image.timestamp}</div>` : ''}
                 `;
+                div.onclick = () => {
+                    socket.emit('toggleDone', index);
+                };
                 container.appendChild(div);
             });
+
+            // Initialize Sortable
+            new Sortable(container, {
+                animation: 150,
+                onEnd: function(evt) {
+                    socket.emit('moveImage', {
+                        from: evt.oldIndex,
+                        to: evt.newIndex
+                    });
+                }
+            });
         });
-
-        function moveUp(index) {
-            socket.emit('moveImage', { from: index, to: index - 1 });
-        }
-
-        function moveDown(index) {
-            socket.emit('moveImage', { from: index, to: index + 1 });
-        }
-
-        function toggleDone(index) {
-            socket.emit('toggleDone', index);
-        }
     </script>
 </body>
 </html>
