@@ -133,7 +133,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('replaceImage', (data) => {
-        const { index, newImageData, isDone } = data;
+        const { index, newImageData } = data;
         const newImage = newImageData.split(',')[1];
         const newName = `image-${index}.jpg`;
         const newPath = `public/${newName}`;
@@ -145,22 +145,13 @@ io.on('connection', (socket) => {
           }
         });
       
-        if (isDone) {
-          images[index].doneUrl = `/${newName}`;
-          images[index].tempUrl = null;
-        } else {
-          images[index].baseUrl = `/${newName}`;
-          images[index].tempUrl = null;
-        }
+        images[index].tempUrl = `/${newName}`;
         io.emit('updateImages', images);
       });
       
       // Add a new socket event to handle image reversion
       socket.on('revertImage', (index) => {
-        images[index].tempUrl = null; // Clear the tempUrl property
-        if (images[index].isDone) {
-          images[index].tempUrl = images[index].doneUrl;
-        }
+        images[index].tempUrl = null;
         io.emit('updateImages', images);
       });
 
