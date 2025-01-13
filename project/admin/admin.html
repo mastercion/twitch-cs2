@@ -221,15 +221,18 @@
         }
 
         function replaceImage(index) {
-  const newImageInput = document.getElementById(`newImageInput-${index}`);
-  newImageInput.click();
-
-  newImageInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    const newImageUrl = URL.createObjectURL(file);
-    socket.emit('replaceImage', { index, newImageUrl });
-  });
-}
+          const newImageInput = document.getElementById(`newImageInput-${index}`);
+          newImageInput.click();
+                
+          newImageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              socket.emit('replaceImage', { index, newImageData: event.target.result });
+            };
+            reader.readAsDataURL(file);
+          });
+        }
         
         function revertImage(index) {
           socket.emit('revertImage', index);
