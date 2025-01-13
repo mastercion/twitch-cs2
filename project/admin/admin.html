@@ -1,14 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel</title>
     <style>
+        /* Global Styles */
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #f44336;
+            --background-color: #f0f0f0;
+            --text-color: #000;
+            --dark-background-color: #333;
+            --dark-text-color: #fff;
+        }
+
+        @font-face {
+            font-family: 'Eurostile Extended Black';
+            src: url('/font/EurostileExtended-Black.woff2') format('woff2'),
+                 url('/font/EurostileExtended-Black.woff') format('woff'),
+                 url('/font/EurostileExtendedBlack.ttf') format('truetype');
+            font-weight: normal;
+            font-display: swap;
+        }
+
         body {
             margin: 0;
             padding: 20px;
-            background-color: #f0f0f0;
+            background-color: var(--background-color);
+            transition: background-color 0.3s ease;
+            font-family: Arial, sans-serif;
         }
 
+        body.dark-mode {
+            background-color: var(--dark-background-color);
+            color: var(--dark-text-color);
+        }
+
+        /* Control Panel Styles */
+        .control-panel {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .control-button {
+            padding: 10px 20px;
+            margin: 0 5px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .control-button:hover {
+            background-color: #45a049;
+        }
+
+        .control-button.stop {
+            background-color: var(--secondary-color);
+        }
+
+        .control-button.stop:hover {
+            background-color: #da190b;
+        }
+
+        .control-button.restart {
+            background-color: #2196F3;
+        }
+
+        .control-button.restart:hover {
+            background-color: #0b7dda;
+        }
+
+        /* Timer Styles */
+        .timer-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .timer {
+            font-family: 'Eurostile Extended Black', sans-serif;
+            font-size: 24px;
+            color: var(--text-color);
+            margin-right: 10px;
+        }
+
+        /* Color Picker Styles */
+        .color-picker {
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        /* Image Container Styles */
         .image-container {
             max-width: 308px;
             margin: 0 auto;
@@ -31,128 +120,96 @@
             display: block;
         }
 
-        .control-panel {
-            text-align: center;
-            margin: 20px 0;
-        }
-
-        .control-button {
-            padding: 10px 20px;
-            margin: 0 5px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #4CAF50;
-            color: white;
+        /* Dark Mode Toggle Button Styles */
+        .dark-mode-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #fff;
             border: none;
-            border-radius: 5px;
+            padding: 5px;
+            cursor: pointer;
         }
 
-        .control-button:hover {
-            background-color: #45a049;
-        }
-
-        .control-button.stop {
-            background-color: #f44336;
-        }
-
-        .control-button.stop:hover {
-            background-color: #da190b;
-        }
-
-        .control-button.restart {
-            background-color: #2196F3;
-        }
-
-        .control-button.restart:hover {
-            background-color: #0b7dda;
-        }
-
-        .timer {
-            font-family: 'Eurostile Extended Black', sans-serif;
-            font-size: 24px;
-            color: rgb(0, 0, 0);
-            text-align: center;
-            margin: 20px 0;
-        }
-        .color-picker {
-            margin: 20px;
-        }
-        .preview {
-            font-size: 24px;
-            margin: 20px;
+        .dark-mode-toggle:hover {
+            background-color: #ccc;
         }
     </style>
 </head>
 <body>
-    <div class="color-picker">
-        <label for="textColor">Stopwatch Color:</label>
-        <input type="color" id="textColor" value="#000000">
-    </div>
-    <div class="preview" id="preview">
-        Preview: 00:00:00
+    <div class="timer-container">
+        <div id="timer" class="timer">00:00:00</div>
+        <input type="color" id="textColor" value="#000000" class="color-picker">
     </div>
     <div class="control-panel">
         <button class="control-button start" onclick="startTimer()">Start</button>
         <button class="control-button stop" onclick="stopTimer()">Stop</button>
         <button class="control-button restart" onclick="restartTimer()">Restart</button>
     </div>
-    <div id="timer" class="timer">00:00:00</div>
     <div class="image-container" id="imageContainer"></div>
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
-    const socket = io();
+        const socket = io();
+        const timerElement = document.getElementById('timer');
         const colorPicker = document.getElementById('textColor');
-        const preview = document.getElementById('preview');
+        const body = document.body;
+
+        // Check if dark mode is already enabled on Windows
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            body.classList.add('dark-mode');
+        }
 
         colorPicker.addEventListener('input', (e) => {
             const color = e.target.value;
-            preview.style.color = color;
+            timerElement.style.color = color;
             socket.emit('colorChange', color);
         });
-    let timerInterval;
-    let startTime = new Date();
-    let isRunning = false;
 
-    function startTimer() {
-        socket.emit('timerControl', { action: 'start' });
-    }
+        let timerInterval;
+        let startTime = new Date();
+        let isRunning = false;
 
-    function stopTimer() {
-        socket.emit('timerControl', { action: 'stop' });
-    }
-
-    function restartTimer() {
-        socket.emit('timerControl', { action: 'restart' });
-    }
-
-    function updateTimer() {
-        if (!isRunning) return;
-        
-        const now = new Date();
-        const diff = now - startTime;
-        const hours = Math.floor(diff / 3600000).toString().padStart(2, '0');
-        const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
-        const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-        document.getElementById('timer').textContent = `${hours}:${minutes}:${seconds}`;
-    }
-
-    socket.on('timerState', (state) => {
-        startTime = new Date(state.startTime);
-        isRunning = state.isRunning;
-        
-        clearInterval(timerInterval);
-        if (isRunning) {
-            updateTimer();
-            timerInterval = setInterval(updateTimer, 1000);
+        function startTimer() {
+            socket.emit('timerControl', { action: 'start' });
         }
-    });
+
+        function stopTimer() {
+            socket.emit('timerControl', { action: 'stop' });
+        }
+
+        function restartTimer() {
+            socket.emit('timerControl', { action: 'restart' });
+        }
+
+        function updateTimer() {
+            if (!isRunning) return;
+
+            const now = new Date();
+            const diff = now - startTime;
+            const hours = Math.floor(diff / 3600000).toString().padStart(2, '0');
+            const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+            const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+            timerElement.textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        socket.on('timerState', (state) => {
+            startTime = new Date(state.startTime);
+            isRunning = state.isRunning;
+
+            clearInterval(timerInterval);
+            if (isRunning) {
+                updateTimer();
+                timerInterval = setInterval(updateTimer, 1000);
+            }
+        });
 
         socket.on('updateImages', (images) => {
             const container = document.getElementById('imageContainer');
             container.innerHTML = '';
-            
+
             images.slice(0, 7).forEach((image, index) => {
                 const div = document.createElement('div');
                 div.className = 'image-item';
@@ -171,7 +228,7 @@
             // Initialize Sortable
             new Sortable(container, {
                 animation: 150,
-                onEnd: function(evt) {
+                onEnd: function (evt) {
                     socket.emit('moveImage', {
                         from: evt.oldIndex,
                         to: evt.newIndex
@@ -179,6 +236,10 @@
                 }
             });
         });
+
+        function toggleDarkMode() {
+            body.classList.toggle('dark-mode');
+        }
     </script>
 </body>
 </html>
