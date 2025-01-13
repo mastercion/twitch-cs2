@@ -93,15 +93,19 @@
             const container = document.getElementById('imageContainer');
             container.innerHTML = '';
             
-            images.slice(0, 7).forEach(image => {
-                const div = document.createElement('div');
-                div.className = 'image-item';
-                const imageUrl = image.isDone ? image.doneUrl : image.baseUrl;
-                div.innerHTML = `
-                    <img src="${imageUrl}" alt="${image.title}">
-                    ${image.timestamp ? `<div class="time-stamp">${image.timestamp}</div>` : ''}
-                `;
-                container.appendChild(div);
+            images.slice(0, 7).forEach((image, index) => {
+              const div = document.createElement('div');
+              div.className = 'image-item';
+              div.setAttribute('data-index', index);
+              const imageUrl = image.tempUrl ? image.tempUrl : (image.isDone ? image.doneUrl : image.baseUrl);
+              div.innerHTML = `
+                <img src="${imageUrl}" alt="${image.title}">
+                ${image.timestamp ? `<div class="time-stamp">${image.timestamp}</div>` : ''}
+              `;
+              div.onclick = () => {
+                socket.emit('toggleDone', index);
+              };
+              container.appendChild(div);
             });
         });
         socket.on('colorChange', (color) => {

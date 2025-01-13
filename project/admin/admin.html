@@ -146,7 +146,11 @@
         <button class="control-button stop" onclick="stopTimer()">Stop</button>
         <button class="control-button restart" onclick="restartTimer()">Restart</button>
     </div>
-    <div class="image-container" id="imageContainer"></div>
+    <div class="image-container" id="imageContainer">
+    <button class="replace-image-button" onclick="replaceImage(this)">Replace Image</button>
+    <input type="file" id="newImageInput" style="display: none;">
+    <button class="revert-image-button" onclick="revertImage(this)">Revert</button>
+    </div>
     <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -155,12 +159,44 @@
         const socket = io();
         const timerElement = document.getElementById('timer');
         const colorPicker = document.getElementById('textColor');
+        const imageContainer = document.getElementById('imageContainer');
+        const replaceImageButton = document.querySelector('.replace-image-button');
         const body = document.body;
 
         // Check if dark mode is already enabled on Windows
         if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
             body.classList.add('dark-mode');
         }
+
+        // Add an event listener to the replace image button
+          replaceImageButton.addEventListener('click', () => {
+            // Get the new image input and click it to prompt the user to select a file
+            const newImageInput = document.getElementById('newImageInput');
+            newImageInput.click();
+          });
+
+        // Add an event listener to the new image input
+          newImageInput.addEventListener('change', (e) => {
+            // Get the selected file and create a URL for it
+            const file = e.target.files[0];
+            const newImageUrl = URL.createObjectURL(file);
+        
+            // Get the index of the image to replace
+            const index = replaceImageButton.dataset.index;
+        
+            // Emit a socket event to replace the image
+            socket.emit('replaceImage', { index, newImageUrl });
+          });
+      
+          // Add an event listener to the revert image button
+          const revertImageButton = document.querySelector('.revert-image-button');
+          revertImageButton.addEventListener('click', () => {
+            // Get the index of the image to revert
+            const index = revertImageButton.dataset.index;
+        
+            // Emit a socket event to revert the image
+            socket.emit('revertImage', index);
+          });
 
         colorPicker.addEventListener('input', (e) => {
             const color = e.target.value;
@@ -182,6 +218,21 @@
 
         function restartTimer() {
             socket.emit('timerControl', { action: 'restart' });
+        }
+
+        function replaceImage(index) {
+  const newImageInput = document.getElementById(`newImageInput-${index}`);
+  newImageInput.click();
+
+  newImageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    const newImageUrl = URL.createObjectURL(file);
+    socket.emit('replaceImage', { index, newImageUrl });
+  });
+}
+        
+        function revertImage(index) {
+          socket.emit('revertImage', index);
         }
 
         function updateTimer() {
@@ -207,35 +258,57 @@
         });
 
         socket.on('updateImages', (images) => {
-            const container = document.getElementById('imageContainer');
-            container.innerHTML = '';
+  const container = document.getElementById('imageContainer');
+  container.innerHTML = '';
 
-            images.slice(0, 7).forEach((image, index) => {
-                const div = document.createElement('div');
-                div.className = 'image-item';
-                div.setAttribute('data-index', index);
-                const imageUrl = image.isDone ? image.doneUrl : image.baseUrl;
-                div.innerHTML = `
-                    <img src="${imageUrl}" alt="${image.title}">
-                    ${image.timestamp ? `<div class="time-stamp">${image.timestamp}</div>` : ''}
-                `;
-                div.onclick = () => {
-                    socket.emit('toggleDone', index);
-                };
-                container.appendChild(div);
-            });
+  images.slice(0, 7).forEach((image, index) => {
+    const div = document.createElement('div');
+    div.className = 'image-item';
+    div.setAttribute('data-index', index);
 
-            // Initialize Sortable
-            new Sortable(container, {
-                animation: 150,
-                onEnd: function (evt) {
-                    socket.emit('moveImage', {
-                        from: evt.oldIndex,
-                        to: evt.newIndex
-                    });
-                }
-            });
-        });
+    const imageUrl = image.isDone ? image.doneUrl : image.baseUrl;
+    const img = document.createElement('img');
+    img.src = imageUrl;
+    img.alt = image.title;
+    img.onclick = () => {
+      socket.emit('toggleDone', index);
+    };
+
+    div.appendChild(img);
+
+    if (image.timestamp) {
+      const timestampDiv = document.createElement('div');
+      timestampDiv.className = 'time-stamp';
+      timestampDiv.textContent = image.timestamp;
+      div.appendChild(timestampDiv);
+    }
+
+    const replaceButton = document.createElement('button');
+    replaceButton.className = 'replace-image-button';
+    replaceButton.textContent = 'Replace Image';
+    replaceButton.onclick = () => {
+      replaceImage(index);
+    };
+    div.appendChild(replaceButton);
+
+    const newImageInput = document.createElement('input');
+    newImageInput.type = 'file';
+    newImageInput.id = `newImageInput-${index}`;
+    newImageInput.style.display = 'none';
+    div.appendChild(newImageInput);
+
+    const revertButton = document.createElement('button');
+    revertButton.className = 'revert-image-button';
+    revertButton.textContent = 'Revert';
+    revertButton.onclick = () => {
+      revertImage(index);
+    };
+    div.appendChild(revertButton);
+
+    container.appendChild(div);
+  });
+});
+
 
         function toggleDarkMode() {
             body.classList.toggle('dark-mode');

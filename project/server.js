@@ -17,14 +17,15 @@ function getImagesFromDirectory(existingImages = []) {
         const newImages = [];
         
         // First, add existing images while preserving their order and state
-        existingImages.forEach(existingImage => {
+        existingImages.forEach((existingImage) => {
             const baseFile = path.basename(existingImage.baseUrl);
             if (files.includes(baseFile)) {
-                newImages.push({
-                    ...existingImage
-                });
+              newImages.push({
+                ...existingImage,
+                tempUrl: null, // Add a tempUrl property
+              });
             }
-        });
+          });
 
         // Then process all PNG files that aren't already included
         files.forEach(file => {
@@ -130,6 +131,18 @@ io.on('connection', (socket) => {
             io.emit('updateImages', images);
         }
     });
+
+    socket.on('replaceImage', (data) => {
+        const { index, newImageUrl } = data;
+        images[index].tempUrl = newImageUrl;
+        io.emit('updateImages', images);
+      });
+      
+      // Add a new socket event to handle image reversion
+      socket.on('revertImage', (index) => {
+        images[index].tempUrl = null;
+        io.emit('updateImages', images);
+      });
 
     socket.on('toggleDone', (index) => {
         if (index >= 0 && index < images.length) {
