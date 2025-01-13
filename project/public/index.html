@@ -104,6 +104,9 @@
                 container.appendChild(div);
             });
         });
+        socket.on('colorChange', (color) => {
+    document.getElementById('timer').style.color = color;
+});
     </script>
 </body>
 </html>

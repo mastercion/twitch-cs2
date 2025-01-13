@@ -74,9 +74,23 @@
             text-align: center;
             margin: 20px 0;
         }
+        .color-picker {
+            margin: 20px;
+        }
+        .preview {
+            font-size: 24px;
+            margin: 20px;
+        }
     </style>
 </head>
 <body>
+    <div class="color-picker">
+        <label for="textColor">Stopwatch Color:</label>
+        <input type="color" id="textColor" value="#000000">
+    </div>
+    <div class="preview" id="preview">
+        Preview: 00:00:00
+    </div>
     <div class="control-panel">
         <button class="control-button start" onclick="startTimer()">Start</button>
         <button class="control-button stop" onclick="stopTimer()">Stop</button>
@@ -88,7 +102,15 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script>
-        const socket = io();
+    const socket = io();
+        const colorPicker = document.getElementById('textColor');
+        const preview = document.getElementById('preview');
+
+        colorPicker.addEventListener('input', (e) => {
+            const color = e.target.value;
+            preview.style.color = color;
+            socket.emit('colorChange', color);
+        });
     let timerInterval;
     let startTime = new Date();
     let isRunning = false;

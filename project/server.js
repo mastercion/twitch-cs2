@@ -54,6 +54,22 @@ function getImagesFromDirectory(existingImages = []) {
     }
 }
 
+let currentColor = '#000000';
+
+io.on('connection', (socket) => {
+    // Send current color to new connections
+    socket.emit('colorChange', currentColor);
+
+    // Your existing socket.io code here...
+
+    // Add this new listener
+    socket.on('colorChange', (color) => {
+        currentColor = color;
+        // Broadcast to all clients except sender
+        socket.broadcast.emit('colorChange', color);
+    });
+});
+
 let images = getImagesFromDirectory();
 
 // Watch for changes in the images directory
