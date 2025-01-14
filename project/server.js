@@ -9,6 +9,9 @@ app.use(express.static('public'));
 app.use('/admin', express.static('admin'));
 app.use('/cs2/twitch', express.static('cs2/twitch'));
 
+const cors = require('cors');
+app.use(cors()); // Allow all origins (or configure it specifically for your domain)
+
 // Function to read images from directory and pair them
 function getImagesFromDirectory(existingImages = []) {
     const imageDir = path.join(__dirname, 'cs2/twitch');
