@@ -1,7 +1,11 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(http, {
+    cors: {
+        origin: '*'
+    }
+});
 const fs = require('fs');
 const path = require('path');
 
@@ -9,9 +13,12 @@ app.use(express.static('public'));
 app.use('/admin', express.static('admin'));
 app.use('/cs2/twitch', express.static('cs2/twitch'));
 
-const cors = require('cors');
-app.use(cors()); // Allow all origins (or configure it specifically for your domain)
 
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+  });
 // Function to read images from directory and pair them
 function getImagesFromDirectory(existingImages = []) {
     const imageDir = path.join(__dirname, 'cs2/twitch');
@@ -109,6 +116,7 @@ let timerState = {
 
 io.on('connection', (socket) => {
     socket.emit('updateImages', images);
+    console.log('A user connected via HTTP');
 
     socket.on('timerControl', (data) => {
         switch(data.action) {
