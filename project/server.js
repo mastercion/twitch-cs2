@@ -156,6 +156,7 @@ io.on('connection', (socket) => {
 
     socket.on('replaceImage', (data) => {
         const { index, newImageUrl } = data;
+        console.log(newImageUrl);
         images[index].tempUrl = newImageUrl;
         io.emit('updateImages', images);
       });
