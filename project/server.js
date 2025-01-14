@@ -14,7 +14,7 @@ const serveIndex = require('serve-index');
 const upload = multer({ dest: 'uploads/' });
 
 app.post('/upload-image', upload.single('image'), (req, res) => {
-    const imageUrl = `http://localhost:3000/uploads/${req.file.filename}`;
+    const imageUrl = `http://192.168.0.154:5601/uploads/${req.file.filename}`;
     res.json({ url: imageUrl });
   });
 
