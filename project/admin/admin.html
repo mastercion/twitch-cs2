@@ -122,21 +122,129 @@
 
         /* Dark Mode Toggle Button Styles */
         .dark-mode-toggle {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background-color: #fff;
-            border: none;
-            padding: 5px;
-            cursor: pointer;
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          padding: 10px 20px;
+          font-size: 16px;
+          cursor: pointer;
+          background-color: grey;
+          color: #fff;
+          border: none;
+          border-radius: 5px;
         }
 
         .dark-mode-toggle:hover {
             background-color: #ccc;
         }
+        .template-button {
+          display: flex;
+          position: absolute;
+          top: 10px;
+          left: 10px;
+          justify-content: center;
+          padding: 10px;
+          border: none;
+          border-radius: 5px;
+          background-color: #4CAF50;
+          color: #fff;
+          cursor: pointer;
+        }
+
+        .replace-image-button {
+          padding: 5px 10px;
+          font-size: 14px;
+          cursor: pointer;
+          background-color: #4CAF50;
+          color: #fff;
+          border: none;
+          border-radius: 5px;
+          transition: background-color 0.3s ease;
+        }
+        
+        .replace-image-button:hover {
+          background-color: #3e8e41;
+        }
+        
+        .revert-image-button {
+          padding: 5px 10px;
+          font-size: 14px;
+          cursor: pointer;
+          background-color: #f44336;
+          color: #fff;
+          border: none;
+          border-radius: 5px;
+          transition: background-color 0.3s ease;
+          margin-left: 5px;
+        }
+        
+        .revert-image-button:hover {
+          background-color: #da190b;
+        }
+
+        .template-button .circle {
+          display: inline-block;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background-color: #fff;
+          color: #4CAF50;
+          text-align: center;
+          line-height: 20px;
+          margin-right: 10px;
+        }
+
+        .dialog {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          background-color: #1d1d1d;
+          padding: 20px;
+          border: 1px solid #00ff00;
+          border-radius: 5px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+          width: 300px;
+        }
+
+        .dialog-title {
+          font-weight: bold;
+          font-size: 18px;
+          margin-bottom: 10px;
+          color: #ffffff;
+        }
+
+        .dialog-content {
+          margin-bottom: 20px;
+          color: #ffffff;
+        }
+
+        .dialog-actions {
+          text-align: right;
+        }
+
+        .close-button {
+          background-color: #4CAF50;
+          color: #fff;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+
+        .close-button:hover {
+          background-color: #3e8e41;
+        }
     </style>
 </head>
 <body>
+    <div>
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+</div>
+    <button class="template-button" onclick="showTemplateInfo()">
+        <span class="circle">?</span>
+        <span>Image Template for Image element</span>
+      </button>
     <div class="timer-container">
         <div id="timer" class="timer">00:00:00</div>
         <input type="color" id="textColor" value="#000000" class="color-picker">
@@ -151,7 +259,6 @@
     <input type="file" id="newImageInput" style="display: none;">
     <button class="revert-image-button" onclick="revertImage(this)">Revert</button>
     </div>
-    <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -166,6 +273,29 @@
         // Check if dark mode is already enabled on Windows
         if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
             body.classList.add('dark-mode');
+        }
+
+        function showTemplateInfo() {
+          const dialog = document.createElement('div');
+          dialog.classList.add('dialog');
+          dialog.innerHTML = `
+            <div class="dialog-title">Replace Image</div>
+            <div class="dialog-content">
+              <p>To use replace Image, the image must be 308x70px.</p>
+              <p>Download the image template from <a href="https://i.ibb.co/ZYvQP7h/template-challange-element.png" target="_blank">here</a>.</p>
+            </div>
+            <div class="dialog-actions">
+              <button class="close-button" onclick="closeDialog()">Close</button>
+            </div>
+          `;
+          document.body.appendChild(dialog);
+        }
+
+        function closeDialog() {
+          const dialog = document.querySelector('.dialog');
+          if (dialog) {
+            dialog.remove();
+          }
         }
 
         // Add an event listener to the replace image button
@@ -225,7 +355,7 @@
         function replaceImage(index) {
           const newImageInput = document.getElementById(`newImageInput-${index}`);
           newImageInput.click();
-                
+
           newImageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             const formData = new FormData();

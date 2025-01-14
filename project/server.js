@@ -128,6 +128,10 @@ let timerState = {
 
 io.on('connection', (socket) => {
     socket.emit('updateImages', images);
+    const date = new Date();
+    const dateString = `${date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+    const timeString = `${date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+    console.log(`[stheticsx.d1mxy.xyz][${dateString}] ${timeString} Client connected`);
     console.log('A user connected via HTTP');
 
     socket.on('timerControl', (data) => {
