@@ -133,19 +133,8 @@ io.on('connection', (socket) => {
     });
 
     socket.on('replaceImage', (data) => {
-        const { index, newImageData } = data;
-        const newImage = newImageData.split(',')[1];
-        const newName = `image-${index}.jpg`;
-        const newPath = `public/${newName}`;
-        const fs = require('fs');
-      
-        fs.writeFileSync(newPath, Buffer.from(newImage, 'base64'), (err) => {
-          if (err) {
-            console.error(err);
-          }
-        });
-      
-        images[index].tempUrl = `/${newName}`;
+        const { index, newImageUrl } = data;
+        images[index].tempUrl = newImageUrl;
         io.emit('updateImages', images);
       });
       
