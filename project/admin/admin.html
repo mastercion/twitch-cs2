@@ -169,24 +169,26 @@
         }
 
         // Add an event listener to the replace image button
-          replaceImageButton.addEventListener('click', () => {
-            // Get the new image input and click it to prompt the user to select a file
-            const newImageInput = document.getElementById('newImageInput');
-            newImageInput.click();
-          });
-
-        // Add an event listener to the new image input
+        replaceImageButton.addEventListener('click', () => {
+          const newImageInput = document.getElementById('newImageInput');
+          newImageInput.click();
+                
           newImageInput.addEventListener('change', (e) => {
-            // Get the selected file and create a URL for it
             const file = e.target.files[0];
-            const newImageUrl = URL.createObjectURL(file);
+            const formData = new FormData();
+            formData.append('image', file);
         
-            // Get the index of the image to replace
-            const index = replaceImageButton.dataset.index;
-        
-            // Emit a socket event to replace the image
-            socket.emit('replaceImage', { index, newImageUrl });
+            fetch('/upload-temp-image', {
+              method: 'POST',
+              body: formData,
+            })
+            .then((response) => response.json())
+            .then((data) => {
+              socket.emit('replaceImage', { index: 0, newImageUrl: data.tempUrl });
+            })
+            .catch((error) => console.error(error));
           });
+        });
       
           // Add an event listener to the revert image button
           const revertImageButton = document.querySelector('.revert-image-button');

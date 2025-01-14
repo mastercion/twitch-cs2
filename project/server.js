@@ -8,6 +8,17 @@ const io = require('socket.io')(http, {
 });
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
+const serveIndex = require('serve-index');
+
+const upload = multer({ dest: 'uploads/' });
+
+app.post('/upload-temp-image', upload.single('image'), (req, res) => {
+  res.json({ tempUrl: `http://localhost:3000/uploads/${req.file.filename}` });
+});
+
+app.use('/uploads', express.static('uploads'));
+app.use('/uploads', serveIndex('uploads', { icons: true }));
 
 app.use(express.static('public'));
 app.use('/admin', express.static('admin'));
