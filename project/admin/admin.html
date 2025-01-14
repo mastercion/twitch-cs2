@@ -172,7 +172,7 @@
         replaceImageButton.addEventListener('click', () => {
           const newImageInput = document.getElementById('newImageInput');
           newImageInput.click();
-                
+
           newImageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             const formData = new FormData();
@@ -228,8 +228,19 @@
                 
           newImageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
-            const newImageUrl = URL.createObjectURL(file);
-            socket.emit('replaceImage', { index, newImageUrl });
+            const formData = new FormData();
+            formData.append('image', file);
+        
+            fetch('/upload-image', {
+              method: 'POST',
+              body: formData,
+            })
+            .then((response) => response.json())
+            .then((data) => {
+              const newImageUrl = data.url;
+              socket.emit('replaceImage', { index, newImageUrl });
+            })
+            .catch((error) => console.error('Error uploading image:', error));
           });
         }
         

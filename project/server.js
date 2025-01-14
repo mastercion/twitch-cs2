@@ -13,9 +13,10 @@ const serveIndex = require('serve-index');
 
 const upload = multer({ dest: 'uploads/' });
 
-app.post('/upload-temp-image', upload.single('image'), (req, res) => {
-  res.json({ tempUrl: `http://localhost:3000/uploads/${req.file.filename}` });
-});
+app.post('/upload-image', upload.single('image'), (req, res) => {
+    const imageUrl = `http://localhost:3000/uploads/${req.file.filename}`;
+    res.json({ url: imageUrl });
+  });
 
 app.use('/uploads', express.static('uploads'));
 app.use('/uploads', serveIndex('uploads', { icons: true }));
