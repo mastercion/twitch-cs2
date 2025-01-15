@@ -3,6 +3,8 @@
 
 Inspired by OhnePixels' YouTube video, "I Streamed Until I Beat CS2's Hardest Challenge. It was a mistake.", this project is a real-time challenge tracker designed for CS2 streamers. It allows viewers to track the streamer's progress, view images related to the challenge, and interact with the streamer through a simple and intuitive interface.
 
+![preview](https://i.ibb.co/rMb3KQX/cs2-ohne-challange-recreation.png)
+
 **How to use**
 ------------
 * **Viewerpage**: It will display the Map items and timer. You will use this as your overlay in obs `http://localhost:3000/`.
