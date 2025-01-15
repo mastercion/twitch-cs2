@@ -6,6 +6,7 @@ const io = require('socket.io')(http, {
         origin: '*'
     }
 });
+const cookieParser = require('cookie-parser');
 const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
@@ -13,11 +14,58 @@ const serveIndex = require('serve-index');
 
 const upload = multer({ dest: 'uploads/' });
 
+const crypto = require('crypto');
+
+let tempUrl = null;
+
+// Function to generate a new temporary URL
+function generateTempUrl() {
+  const tempUrlCode = crypto.randomBytes(16).toString('hex');
+  tempUrl = `/verify/${tempUrlCode}`;
+  console.log(`Temp cookie URL created: http://localhost:3000${tempUrl}`);
+  return tempUrl;
+}
+
+// Generate a new temporary URL on startup
+generateTempUrl();
+
+app.get('/verify/:code', (req, res) => {
+  if (req.params.code === tempUrl.split('/')[2]) {
+    // Set the cookie
+    const randomCrypto = crypto.randomBytes(32).toString('hex');
+    res.cookie('streamerCookie', randomCrypto, {
+      httpOnly: true,
+      maxAge: 31536000000000 // lifetime o.O
+    });
+    res.send('Cookie set!');
+    // Generate a new temporary URL
+    generateTempUrl();
+  } else {
+    res.status(403).send('Invalid code');
+  }
+});
+
 app.post('/upload-image', upload.single('image'), (req, res) => {
     const imageUrl = `http://localhost:3000/${req.file.filename}`;
     res.json({ url: imageUrl });
   });
 
+// Enable cookie parsing
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+
+// Middleware function to check for the cookie
+const cookieCheckMiddleware = (req, res, next) => {
+    if (req.cookies.streamerCookie) {
+      next();
+    } else {
+      res.status(403).send('500 Bad Gateway');
+    }
+  };
+
+// Apply the middleware function to all routes
+app.use(cookieCheckMiddleware);
 app.use('/uploads', express.static('uploads'));
 app.use('/uploads', serveIndex('uploads', { icons: true }));
 
@@ -132,7 +180,6 @@ io.on('connection', (socket) => {
     const dateString = `${date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
     const timeString = `${date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
     console.log(`[localhost][${dateString}] ${timeString} Client connected`);
-    console.log('A user connected via HTTP');
 
     socket.on('timerControl', (data) => {
         switch(data.action) {
