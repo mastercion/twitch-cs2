@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "server.js",
     "scripts": {
-        "start": "PORT=5600 node server.js",
+        "start": "PORT=3000 node server.js",
         "dev": "PORT=3000 node server.js"
     },
     "dependencies": {
