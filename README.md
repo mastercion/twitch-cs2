@@ -40,9 +40,11 @@ Inspired by OhnePixels' YouTube video, "I Streamed Until I Beat CS2's Hardest Ch
 
 1. Clone the repository to your local machine.
 2. Install the required dependencies using `npm install`.
-3. Start the server using `node server.js`.
-4. Open the tracker in your web browser by navigating to `http://localhost:3000`.
-5. Customize the tracker to suit your needs by modifying the `server.js` and `index.html` files.
+3. You will need to configure this line to your [IP Address](https://github.com/mastercion/twitch-cs2/blob/bae0621f2dd28686210135953f46b41fb557b6aa/project/server.js#L17)
+4. Configure the [PORT](https://github.com/mastercion/twitch-cs2/blob/edb8ec51f3ffa66ad6800c8968080a1af6f8d79d/project/package.json#L6) here
+5. Start the server using `node server.js`.
+6. Open the tracker in your web browser by navigating to `http://localhost:3000`.
+7. Customize the tracker to suit your needs by modifying the `server.js` and `index.html` files.
 
 **Contributing**
 ---------------
