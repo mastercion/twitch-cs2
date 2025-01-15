@@ -41,6 +41,13 @@ Inspired by OhnePixels' YouTube video, this project is a real-time challenge tra
 * **Viewer page**: Display the map items and timer in your OBS overlay (`http://localhost:3000/`).
 * **Admin page**: Change the state, image, and time settings (`http://localhost:3000/admin/admin.html`).
 
+**Features to be added**
+--------------
+
+- [ ] Pick what maps to display
+- [ ] Hide time
+- [ ] Color Control of Timestamp
+
 **📋Requirements📋**
 ---------------
 
