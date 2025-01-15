@@ -14,7 +14,7 @@ const serveIndex = require('serve-index');
 const upload = multer({ dest: 'uploads/' });
 
 app.post('/upload-image', upload.single('image'), (req, res) => {
-    const imageUrl = `https://stheticsx.d1mx.xyz/uploads/${req.file.filename}`;
+    const imageUrl = `http://localhost:3000/${req.file.filename}`;
     res.json({ url: imageUrl });
   });
 
