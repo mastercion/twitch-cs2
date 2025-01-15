@@ -3,13 +3,17 @@
 
 Inspired by OhnePixels' YouTube video, "I Streamed Until I Beat CS2's Hardest Challenge. It was a mistake.", this project is a real-time challenge tracker designed for CS2 streamers. It allows viewers to track the streamer's progress, view images related to the challenge, and interact with the streamer through a simple and intuitive interface.
 
+**How to use**
+------------
+* **Viewerpage**: It will display the Map items and timer. You will use this as your overlay in obs `http://localhost:3000/`.
+* **Admin Page**: This gives you the ability to interact with the Viewerpage. It lets you change the State, Image and Time&Time color `http://localhost:3000/admin/admin.html`.
+
 **Features**
 ------------
 
 * **Real-time Image Updates**: The tracker can display images related to the challenge, such as screenshots or concept art, and update them in real-time as the streamer progresses.
 * **Challenge Progress Tracking**: The tracker can display the streamer's progress, including the current challenge, completed challenges, and remaining challenges.
 * **Timer Functionality**: The tracker includes a timer that can be started, stopped, and reset, allowing viewers to track the streamer's progress over time.
-* **Dark Mode**: The tracker includes a dark mode feature, allowing viewers to switch between light and dark themes to suit their preferences.
 * **Image Replacement**: Viewers can replace images in the tracker with their own, allowing for community engagement and interaction.
 * **Image Reversion**: Viewers can revert images to their original state, allowing for easy management of image replacements.
 * **Socket.io Integration**: The tracker uses Socket.io to enable real-time communication between the server and clients, allowing for seamless updates and interactions.
