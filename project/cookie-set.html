@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cookie gesetzt!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    .cookie-set-page {
+      width: 90%;
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #fff;
+      padding: 40px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .cookie-set-page h1 {
+      font-size: 30px;
+      margin-top: 0;
+    }
+    .cookie-set-page p {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    #countdown {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: rgba(255, 192, 203, 0.5);
+      transform: rotate(0deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="cookie-set-page">
+    <h1>Cookie gesetzt!</h1>
+    <p>Du wirst in <span id="countdown">10</span> Sekunden zum Overlay gebracht!</p>
+    <p>Sie werden automatisch weitergeleitet. Wenn dies nicht passiert, klicken Sie bitte <a href="http://localhost:3000">hier</a>.</p>
+  </div>
+  <script>
+    let countdown = 10;
+    const countdownElement = document.getElementById('countdown');
+    const intervalId = setInterval(() => {
+      countdown--;
+      countdownElement.textContent = countdown;
+      if (countdown === 0) {
+        clearInterval(intervalId);
+        window.location.href = 'http://localhost:3000';
+      }
+    }, 1000);
+
+    function createConfetti() {
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.top = Math.random() * -window.innerHeight + 'px';
+        confetti.style.left = Math.random() * window.innerWidth + 'px';
+        confetti.style.backgroundColor = getRandomColor();
+        confetti.style.transform = 'rotate(' + Math.random() * 360 + 'deg)';
+        document.body.appendChild(confetti);
+        animateConfetti(confetti);
+      }
+    }
+
+    function animateConfetti(confetti) {
+      let ticking = false;
+      let y = parseFloat(confetti.style.top);
+      let x = parseFloat(confetti.style.left);
+      let speedY = Math.random() * 5;
+      let speedX = Math.random() * 2;
+      let rotation = 0;
+
+      function tick() {
+        if (!ticking) {
+          ticking = true;
+          y += speedY;
+          x += speedX;
+          rotation += Math.random() * 10;
+          confetti.style.top = y + 'px';
+          confetti.style.left = x + 'px';
+          confetti.style.transform = 'rotate(' + rotation + 'deg)';
+          if (y < window.innerHeight) {
+            requestAnimationFrame(tick);
+          } else {
+            confetti.remove();
+          }
+          ticking = false;
+        }
+      }
+
+      tick();
+    }
+
+    function getRandomColor() {
+      const colors = ['#FF69B4', '#FFC0CB', '#FF99CC', '#FF66CC', '#CC66FF'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    setInterval(createConfetti, 550);
+  </script>
+</body>
+</html>

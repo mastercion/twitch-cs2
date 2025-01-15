@@ -17,12 +17,16 @@ const upload = multer({ dest: 'uploads/' });
 const crypto = require('crypto');
 
 let tempUrl = null;
+const consoleURL = 'http://localhost:3000';
 
 // Function to generate a new temporary URL
 function generateTempUrl() {
+  const date = new Date();
+  const dateString = `${date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+  const timeString = `${date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
   const tempUrlCode = crypto.randomBytes(16).toString('hex');
   tempUrl = `/verify/${tempUrlCode}`;
-  console.log(`Temp cookie URL created: http://localhost:3000${tempUrl}`);
+  console.log(`[${consoleURL}][${dateString}][tempURL] ${timeString} http://localhost:3000${tempUrl}`);
   return tempUrl;
 }
 
@@ -37,7 +41,7 @@ app.get('/verify/:code', (req, res) => {
       httpOnly: true,
       maxAge: 31536000000000 // lifetime o.O
     });
-    res.send('Cookie set!');
+    res.sendFile(path.join(__dirname, 'cookie-set.html'));
     // Generate a new temporary URL
     generateTempUrl();
   } else {
@@ -60,7 +64,7 @@ const cookieCheckMiddleware = (req, res, next) => {
     if (req.cookies.streamerCookie) {
       next();
     } else {
-      res.status(403).send('500 Bad Gateway');
+      res.status(503).sendFile(path.join(__dirname, 'cookie-required.html'));
     }
   };
 
@@ -179,7 +183,7 @@ io.on('connection', (socket) => {
     const date = new Date();
     const dateString = `${date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
     const timeString = `${date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
-    console.log(`[localhost][${dateString}] ${timeString} Client connected`);
+    console.log(`[${consoleURL}][${dateString}] ${timeString} Client connected`);
 
     socket.on('timerControl', (data) => {
         switch(data.action) {
@@ -240,5 +244,8 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 http.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    const date = new Date();
+    const dateString = `${date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}`;
+    const timeString = `${date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+    console.log(`[${consoleURL}][${dateString}] ${timeString} Server running on port ${PORT}`);
 });
